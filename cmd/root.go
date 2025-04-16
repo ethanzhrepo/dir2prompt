@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ethanzhrepo/dir-to-prompt/pkg/processor"
+	"github.com/ethanzhrepo/dir2prompt/pkg/processor"
 	"github.com/spf13/cobra"
 )
 
@@ -19,9 +19,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "dir-to-prompt",
+	Use:   "dir2prompt",
 	Short: "Scan a directory and output files content based on include/exclude patterns",
-	Long: `dir-to-prompt is a command line tool for scanning a specified directory,
+	Long: `dir2prompt is a command line tool for scanning a specified directory,
 selecting text files based on include/exclude rules, and outputting their
 contents to a single output stream or file. The output is formatted with
 clear delimiters indicating source file paths, making it ideal for preparing

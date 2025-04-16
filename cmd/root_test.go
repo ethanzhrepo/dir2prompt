@@ -12,7 +12,7 @@ import (
 // setupTestDir creates a temporary test directory structure for command tests
 func setupTestDir(t *testing.T) string {
 	// Create a temporary directory for tests
-	tempDir, err := os.MkdirTemp("", "dir-to-prompt-cmd-test")
+	tempDir, err := os.MkdirTemp("", "dir2prompt-cmd-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
@@ -72,25 +72,25 @@ func TestRootCommand(t *testing.T) {
 	}{
 		{
 			name:          "basic usage",
-			args:          []string{"dir-to-prompt", "--dir", tempDir, "--include-files", "*.md"},
+			args:          []string{"dir2prompt", "--dir", tempDir, "--include-files", "*.md"},
 			expectedFiles: []string{"README.md", "guide.md"},
 			expectedError: false,
 		},
 		{
 			name:          "default include all",
-			args:          []string{"dir-to-prompt", "--dir", tempDir, "--exclude-files", "*.bin,*.tmp"},
+			args:          []string{"dir2prompt", "--dir", tempDir, "--exclude-files", "*.bin,*.tmp"},
 			expectedFiles: []string{"README.md", "main.go", "lib.go", "guide.md"},
 			expectedError: false,
 		},
 		{
 			name:          "with exclude",
-			args:          []string{"dir-to-prompt", "--dir", tempDir, "--include-files", "*.go,*.md", "--exclude-files", "docs/*"},
+			args:          []string{"dir2prompt", "--dir", tempDir, "--include-files", "*.go,*.md", "--exclude-files", "docs/*"},
 			expectedFiles: []string{"README.md", "main.go", "lib.go"},
 			expectedError: false,
 		},
 		{
 			name:          "missing dir",
-			args:          []string{"dir-to-prompt", "--include-files", "*.md"},
+			args:          []string{"dir2prompt", "--include-files", "*.md"},
 			expectedFiles: []string{},
 			expectedError: true,
 		},
@@ -164,7 +164,7 @@ func TestEstimateTokensFlag(t *testing.T) {
 	defer func() { os.Args = origArgs }()
 
 	// Set command line args
-	os.Args = []string{"dir-to-prompt", "--dir", tempDir, "--include-files", "README.md", "--estimate-tokens"}
+	os.Args = []string{"dir2prompt", "--dir", tempDir, "--include-files", "README.md", "--estimate-tokens"}
 
 	// Redirect stdout and stderr
 	oldStdout := os.Stdout
@@ -218,7 +218,7 @@ func TestOutputFile(t *testing.T) {
 	defer func() { os.Args = origArgs }()
 
 	// Set command line args
-	os.Args = []string{"dir-to-prompt", "--dir", tempDir, "--include-files", "README.md", "--output", outputFile}
+	os.Args = []string{"dir2prompt", "--dir", tempDir, "--include-files", "README.md", "--output", outputFile}
 
 	// Reset rootCmd
 	dirPath = ""
@@ -262,7 +262,7 @@ func TestBinaryFilesHandling(t *testing.T) {
 	defer func() { os.Args = origArgs }()
 
 	// Set command line args to include all files, including binary
-	os.Args = []string{"dir-to-prompt", "--dir", tempDir, "--include-files", "*"}
+	os.Args = []string{"dir2prompt", "--dir", tempDir, "--include-files", "*"}
 
 	// Redirect stdout and stderr
 	oldStdout := os.Stdout

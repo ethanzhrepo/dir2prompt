@@ -55,9 +55,11 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/ethanzhrepo/dir-to-prompt/cmd/root.go (86.2%)</option>
+				<option value="file0">github.com/ethanzhrepo/dir2prompt/cmd/root.go (86.2%)</option>
 				
-				<option value="file1">github.com/ethanzhrepo/dir-to-prompt/pkg/processor/processor.go (86.2%)</option>
+				<option value="file1">github.com/ethanzhrepo/dir2prompt/main.go (0.0%)</option>
+				
+				<option value="file2">github.com/ethanzhrepo/dir2prompt/pkg/processor/processor.go (86.2%)</option>
 				
 				</select>
 			</div>
@@ -78,7 +80,7 @@ import (
         "os"
         "strings"
 
-        "github.com/ethanzhrepo/dir-to-prompt/pkg/processor"
+        "github.com/ethanzhrepo/dir2prompt/pkg/processor"
         "github.com/spf13/cobra"
 )
 
@@ -92,9 +94,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &amp;cobra.Command{
-        Use:   "dir-to-prompt",
+        Use:   "dir2prompt",
         Short: "Scan a directory and output files content based on include/exclude patterns",
-        Long: `dir-to-prompt is a command line tool for scanning a specified directory,
+        Long: `dir2prompt is a command line tool for scanning a specified directory,
 selecting text files based on include/exclude rules, and outputting their
 contents to a single output stream or file. The output is formatted with
 clear delimiters indicating source file paths, making it ideal for preparing
@@ -174,7 +176,18 @@ func splitPatterns(patterns string) []string <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package processor
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "github.com/ethanzhrepo/dir2prompt/cmd"
+)
+
+func main() <span class="cov0" title="0">{
+        cmd.Execute()
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package processor
 
 import (
         "bytes"

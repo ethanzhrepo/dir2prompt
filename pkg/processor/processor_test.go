@@ -12,7 +12,7 @@ import (
 // setupTestDir creates a temporary test directory structure
 func setupTestDir(t *testing.T) string {
 	// Create a temporary directory for tests
-	tempDir, err := os.MkdirTemp("", "dir-to-prompt-test")
+	tempDir, err := os.MkdirTemp("", "dir2prompt-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}

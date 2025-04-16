@@ -1,6 +1,6 @@
 .PHONY: build install clean test test-cover cross-build build-windows build-linux build-darwin build-all
 
-BINARY_NAME=dir-to-prompt
+BINARY_NAME=dir2prompt
 GOFLAGS=-ldflags="-s -w"
 VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 

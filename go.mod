@@ -1,4 +1,4 @@
-module github.com/ethanzhrepo/dir-to-prompt
+module github.com/ethanzhrepo/dir2prompt
 
 go 1.24.2
 

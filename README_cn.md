@@ -1,10 +1,11 @@
-# dir-to-prompt
+# dir2prompt
 
 
-![GitHub commit activity](https://img.shields.io/github/commit-activity/w/ethanzhrepo/dir-to-prompt)
-![GitHub Release](https://img.shields.io/github/v/release/ethanzhrepo/dir-to-prompt)
-![GitHub Repo stars](https://img.shields.io/github/stars/ethanzhrepo/dir-to-prompt)
-![GitHub License](https://img.shields.io/github/license/ethanzhrepo/dir-to-prompt)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ethanzhrepo/dir2prompt/go.yml)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/ethanzhrepo/dir2prompt)
+![GitHub Release](https://img.shields.io/github/v/release/ethanzhrepo/dir2prompt)
+![GitHub Repo stars](https://img.shields.io/github/stars/ethanzhrepo/dir2prompt)
+![GitHub License](https://img.shields.io/github/license/ethanzhrepo/dir2prompt)
 
 
 <a href="https://t.me/ethanatca"><img alt="" src="https://img.shields.io/badge/Telegram-%40ethanatca-blue" /></a>
@@ -13,11 +14,11 @@
 </a>
 
 
-**dir-to-prompt** 是一个命令行工具，用于扫描指定目录，根据包含/排除规则选择文本文件，并将其内容合并输出到单一的输出流或文件中。输出内容会使用清晰的分隔符标明源文件路径，非常适合为大语言模型（LLM）准备上下文或用于代码分析。
+**dir2prompt** 是一个命令行工具，用于扫描指定目录，根据包含/排除规则选择文本文件，并将其内容合并输出到单一的输出流或文件中。输出内容会使用清晰的分隔符标明源文件路径，非常适合为大语言模型（LLM）准备上下文或用于代码分析。
 
 ## 📚 动机
 
-在与 LLM 交互时，提供充足的上下文（例如代码库的相关部分或项目文档）至关重要。手动复制粘贴多个文件既繁琐又容易出错。`dir-to-prompt` 自动化了这一过程，让您可以快速地将指定的项目文件收集到一个结构清晰、适合用作提示（Prompt）的文本块中。
+在与 LLM 交互时，提供充足的上下文（例如代码库的相关部分或项目文档）至关重要。手动复制粘贴多个文件既繁琐又容易出错。`dir2prompt` 自动化了这一过程，让您可以快速地将指定的项目文件收集到一个结构清晰、适合用作提示（Prompt）的文本块中。
 
 ## ✨ 特性
 
@@ -35,17 +36,17 @@
 **使用 Go 安装:**
 
 ```bash
-go install github.com/ethanzhrepo/dir-to-prompt@latest
+go install github.com/ethanzhrepo/dir2prompt@latest
 ```
 
 **从二进制发行版安装:**
 
-从 [Releases](https://github.com/ethanzhrepo/dir-to-prompt/releases) 页面下载适用于您系统的二进制文件。
+从 [Releases](https://github.com/ethanzhrepo/dir2prompt/releases) 页面下载适用于您系统的二进制文件。
 
 ## 🛠️ 用法
 
 ```bash
-dir-to-prompt --dir <目录路径> --include-files <包含模式> [--exclude-files <排除模式>] [--output <输出文件或标准输出>] [--estimate-tokens]
+dir2prompt --dir <目录路径> --include-files <包含模式> [--exclude-files <排除模式>] [--output <输出文件或标准输出>] [--estimate-tokens]
 ```
 
 ### 参数说明
@@ -69,13 +70,13 @@ dir-to-prompt --dir <目录路径> --include-files <包含模式> [--exclude-fil
 包含 `~/myproject` 目录中的所有文件，排除测试文件，并输出到控制台：
 
 ```bash
-dir-to-prompt --dir ~/myproject --exclude-files "*_test.go"
+dir2prompt --dir ~/myproject --exclude-files "*_test.go"
 ```
 
 包含 `~/webapp` 目录中 `src` 子目录下的 Go 文件、所有 JavaScript 文件和文本文件，排除临时文件和 `node_modules` 目录下的所有内容，并将结果保存到 `context.txt`：
 
 ```bash
-dir-to-prompt --dir ~/webapp \
+dir2prompt --dir ~/webapp \
               --include-files "src/**/*.go,*.js,*.txt" \
               --exclude-files "*.tmp,node_modules/*" \
               -o context.txt
@@ -84,7 +85,7 @@ dir-to-prompt --dir ~/webapp \
 带有 token 估算的示例：
 
 ```bash
-dir-to-prompt --dir ~/my/project \
+dir2prompt --dir ~/my/project \
               --include-files "*.go,*.txt,*.js,*.java,cmd/*.go" \
               --exclude-files "*.tmp,*.sh,test/*.go" \
               --estimate-tokens \

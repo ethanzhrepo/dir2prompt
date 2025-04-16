@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ethanzhrepo/dir-to-prompt/cmd"
+	"github.com/ethanzhrepo/dir2prompt/cmd"
 )
 
 func main() {

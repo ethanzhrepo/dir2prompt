@@ -1,11 +1,12 @@
-# dir-to-prompt
+# dir2prompt
 
 
 
-![GitHub commit activity](https://img.shields.io/github/commit-activity/w/ethanzhrepo/dir-to-prompt)
-![GitHub Release](https://img.shields.io/github/v/release/ethanzhrepo/dir-to-prompt)
-![GitHub Repo stars](https://img.shields.io/github/stars/ethanzhrepo/dir-to-prompt)
-![GitHub License](https://img.shields.io/github/license/ethanzhrepo/dir-to-prompt)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ethanzhrepo/dir2prompt/go.yml)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/ethanzhrepo/dir2prompt)
+![GitHub Release](https://img.shields.io/github/v/release/ethanzhrepo/dir2prompt)
+![GitHub Repo stars](https://img.shields.io/github/stars/ethanzhrepo/dir2prompt)
+![GitHub License](https://img.shields.io/github/license/ethanzhrepo/dir2prompt)
 
 
 <a href="https://t.me/ethanatca"><img alt="" src="https://img.shields.io/badge/Telegram-%40ethanatca-blue" /></a>
@@ -13,11 +14,15 @@
 <img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/0x99_Ethan">
 </a>
 
-**dir-to-prompt** is a command-line tool for scanning a specified directory, selecting text files based on include/exclude rules, and outputting their contents to a single output stream or file. The output is formatted with clear delimiters indicating source file paths, making it ideal for preparing context for large language models (LLMs) or for code analysis.
+<p align="right">
+  <a href="README_cn.md">中文文档</a>
+</p>
+
+**dir2prompt** is a command-line tool for scanning a specified directory, selecting text files based on include/exclude rules, and outputting their contents to a single output stream or file. The output is formatted with clear separators indicating source file paths, making it ideal for preparing context for large language models (LLMs) or code analysis.
 
 ## 📚 Motivation
 
-When interacting with LLMs, providing sufficient context (such as relevant portions of a codebase or project documentation) is essential. Manually copying and pasting multiple files is tedious and error-prone. `dir-to-prompt` automates this process, allowing you to quickly collect specified project files into a well-structured text block suitable for use as a prompt.
+When interacting with LLMs, providing sufficient context (such as relevant portions of a codebase or project documentation) is essential. Manually copying and pasting multiple files is tedious and error-prone. `dir2prompt` automates this process, allowing you to quickly collect specified project files into a well-structured text block suitable for use as a prompt.
 
 ## ✨ Features
 
@@ -35,17 +40,17 @@ When interacting with LLMs, providing sufficient context (such as relevant porti
 **Using Go Install:**
 
 ```bash
-go install github.com/ethanzhrepo/dir-to-prompt@latest
+go install github.com/ethanzhrepo/dir2prompt@latest
 ```
 
 **From Binary Release:**
 
-Download the binary for your system from the [Releases](https://github.com/ethanzhrepo/dir-to-prompt/releases) page.
+Download the binary for your system from the [Releases](https://github.com/ethanzhrepo/dir2prompt/releases) page.
 
 ## 🛠️ Usage
 
 ```bash
-dir-to-prompt --dir <directory-path> --include-files <include-patterns> [--exclude-files <exclude-patterns>] [--output <output-file-or-stdout>] [--estimate-tokens]
+dir2prompt --dir <directory-path> --include-files <include-patterns> [--exclude-files <exclude-patterns>] [--output <output-file-or-stdout>] [--estimate-tokens]
 ```
 
 ### Parameters
@@ -69,13 +74,13 @@ dir-to-prompt --dir <directory-path> --include-files <include-patterns> [--exclu
 Include all files in the `~/myproject` directory, exclude test files, and output to the console:
 
 ```bash
-dir-to-prompt --dir ~/myproject --exclude-files "*_test.go"
+dir2prompt --dir ~/myproject --exclude-files "*_test.go"
 ```
 
 Include Go files in the `src` subdirectory of `~/webapp`, all JavaScript files and text files, exclude temporary files and everything in the `node_modules` directory, and save the result to `context.txt`:
 
 ```bash
-dir-to-prompt --dir ~/webapp \
+dir2prompt --dir ~/webapp \
               --include-files "src/**/*.go,*.js,*.txt" \
               --exclude-files "*.tmp,node_modules/*" \
               -o context.txt
@@ -84,7 +89,7 @@ dir-to-prompt --dir ~/webapp \
 Example with token estimation:
 
 ```bash
-dir-to-prompt --dir ~/my/project \
+dir2prompt --dir ~/my/project \
               --include-files "*.go,*.txt,*.js,*.java,cmd/*.go" \
               --exclude-files "*.tmp,*.sh,test/*.go" \
               --estimate-tokens \
