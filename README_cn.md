@@ -1,5 +1,18 @@
 # dir-to-prompt
 
+
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/ethanzhrepo/dir-to-prompt)
+![GitHub Release](https://img.shields.io/github/v/release/ethanzhrepo/dir-to-prompt)
+![GitHub Repo stars](https://img.shields.io/github/stars/ethanzhrepo/dir-to-prompt)
+![GitHub License](https://img.shields.io/github/license/ethanzhrepo/dir-to-prompt)
+
+
+<a href="https://t.me/ethanatca"><img alt="" src="https://img.shields.io/badge/Telegram-%40ethanatca-blue" /></a>
+<a href="https://x.com/intent/follow?screen_name=0x99_Ethan">
+<img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/0x99_Ethan">
+</a>
+
+
 **dir-to-prompt** 是一个命令行工具，用于扫描指定目录，根据包含/排除规则选择文本文件，并将其内容合并输出到单一的输出流或文件中。输出内容会使用清晰的分隔符标明源文件路径，非常适合为大语言模型（LLM）准备上下文或用于代码分析。
 
 ## 📚 动机

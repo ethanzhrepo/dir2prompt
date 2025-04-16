@@ -1,5 +1,18 @@
 # dir-to-prompt
 
+
+
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/ethanzhrepo/dir-to-prompt)
+![GitHub Release](https://img.shields.io/github/v/release/ethanzhrepo/dir-to-prompt)
+![GitHub Repo stars](https://img.shields.io/github/stars/ethanzhrepo/dir-to-prompt)
+![GitHub License](https://img.shields.io/github/license/ethanzhrepo/dir-to-prompt)
+
+
+<a href="https://t.me/ethanatca"><img alt="" src="https://img.shields.io/badge/Telegram-%40ethanatca-blue" /></a>
+<a href="https://x.com/intent/follow?screen_name=0x99_Ethan">
+<img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/0x99_Ethan">
+</a>
+
 **dir-to-prompt** is a command-line tool for scanning a specified directory, selecting text files based on include/exclude rules, and outputting their contents to a single output stream or file. The output is formatted with clear delimiters indicating source file paths, making it ideal for preparing context for large language models (LLMs) or for code analysis.
 
 ## 📚 Motivation
