@@ -28,6 +28,7 @@
 * **可定制输出：** 将合并后的文本定向到标准输出（stdout）或指定的输出文件。
 * **清晰的格式：** 在每个被包含文件的内容之前，添加一个标明其相对路径的标题行。
 * **Token 估算：** 可选功能，估算输出内容中的 token 数量，方便控制提示的大小。
+* **仅处理文本文件：** 自动检测并跳过二进制文件，只处理文本文件。
 
 ## 🚀 安装
 
@@ -50,8 +51,9 @@ dir-to-prompt --dir <目录路径> --include-files <包含模式> [--exclude-fil
 ### 参数说明
 
 * **--dir \<目录路径\>：** (必需) 需要扫描的根目录路径。
-* **--include-files \<包含模式\>：** (必需) 用于匹配需要包含文件的 glob 模式列表，以逗号分隔。模式将与相对于 --dir 目录的文件路径进行匹配。
+* **--include-files \<包含模式\>：** (可选) 用于匹配需要包含文件的 glob 模式列表，以逗号分隔。模式将与相对于 --dir 目录的文件路径进行匹配。
   * 示例: `*.go,*.txt,docs/*.md`
+  * 如果未指定，默认包含所有文件（`*`）。
 * **--exclude-files \<排除模式\>：** (可选) 用于匹配需要排除文件的 glob 模式列表，以逗号分隔。匹配这些模式的文件将被忽略，即使它们也匹配了包含模式。
   * 示例: `*_test.go,vendor/*,*.tmp`
 * **--output \<输出文件或标准输出\>** 或 **-o \<输出文件或标准输出\>：** (可选) 指定输出目标。
@@ -64,10 +66,10 @@ dir-to-prompt --dir <目录路径> --include-files <包含模式> [--exclude-fil
 
 ### 示例
 
-包含 `~/myproject` 目录中所有的 `.go` 和 `.md` 文件，排除测试文件，并输出到控制台：
+包含 `~/myproject` 目录中的所有文件，排除测试文件，并输出到控制台：
 
 ```bash
-dir-to-prompt --dir ~/myproject --include-files "*.go,*.md" --exclude-files "*_test.go"
+dir-to-prompt --dir ~/myproject --exclude-files "*_test.go"
 ```
 
 包含 `~/webapp` 目录中 `src` 子目录下的 Go 文件、所有 JavaScript 文件和文本文件，排除临时文件和 `node_modules` 目录下的所有内容，并将结果保存到 `context.txt`：

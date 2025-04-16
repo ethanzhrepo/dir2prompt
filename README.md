@@ -28,6 +28,7 @@ When interacting with LLMs, providing sufficient context (such as relevant porti
 * **Customizable Output:** Direct the combined text to standard output (stdout) or a specified output file.
 * **Clear Formatting:** Adds a header line indicating the relative path before the content of each included file.
 * **Token Estimation:** Optional feature to estimate the number of tokens in the output, helping to control prompt size.
+* **Text-only Processing:** Automatically detects and skips binary files, processing only text files.
 
 ## 🚀 Installation
 
@@ -50,8 +51,9 @@ dir-to-prompt --dir <directory-path> --include-files <include-patterns> [--exclu
 ### Parameters
 
 * **--dir \<directory-path\>:** (Required) Path to the root directory to scan.
-* **--include-files \<include-patterns\>:** (Required) List of glob patterns to match files to include, comma-separated. Patterns are matched against file paths relative to the --dir directory.
+* **--include-files \<include-patterns\>:** (Optional) List of glob patterns to match files to include, comma-separated. Patterns are matched against file paths relative to the --dir directory.
   * Example: `*.go,*.txt,docs/*.md`
+  * If not specified, defaults to include all files (`*`).
 * **--exclude-files \<exclude-patterns\>:** (Optional) List of glob patterns to match files to exclude, comma-separated. Files matching these patterns will be ignored, even if they also match an include pattern.
   * Example: `*_test.go,vendor/*,*.tmp`
 * **--output \<output-file-or-stdout\>** or **-o \<output-file-or-stdout\>:** (Optional) Specify the output destination.
@@ -64,10 +66,10 @@ dir-to-prompt --dir <directory-path> --include-files <include-patterns> [--exclu
 
 ### Examples
 
-Include all `.go` and `.md` files in the `~/myproject` directory, exclude test files, and output to the console:
+Include all files in the `~/myproject` directory, exclude test files, and output to the console:
 
 ```bash
-dir-to-prompt --dir ~/myproject --include-files "*.go,*.md" --exclude-files "*_test.go"
+dir-to-prompt --dir ~/myproject --exclude-files "*_test.go"
 ```
 
 Include Go files in the `src` subdirectory of `~/webapp`, all JavaScript files and text files, exclude temporary files and everything in the `node_modules` directory, and save the result to `context.txt`:

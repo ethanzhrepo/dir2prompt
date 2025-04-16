@@ -55,11 +55,9 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/ethanzhrepo/dir-to-prompt/cmd/root.go (0.0%)</option>
+				<option value="file0">github.com/ethanzhrepo/dir-to-prompt/cmd/root.go (86.2%)</option>
 				
-				<option value="file1">github.com/ethanzhrepo/dir-to-prompt/main.go (0.0%)</option>
-				
-				<option value="file2">github.com/ethanzhrepo/dir-to-prompt/pkg/processor/processor.go (88.8%)</option>
+				<option value="file1">github.com/ethanzhrepo/dir-to-prompt/pkg/processor/processor.go (86.2%)</option>
 				
 				</select>
 			</div>
@@ -85,10 +83,11 @@ import (
 )
 
 var (
-        dirPath      string
-        includeFiles string
-        excludeFiles string
-        output       string
+        dirPath        string
+        includeFiles   string
+        excludeFiles   string
+        output         string
+        estimateTokens bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -100,25 +99,29 @@ selecting text files based on include/exclude rules, and outputting their
 contents to a single output stream or file. The output is formatted with
 clear delimiters indicating source file paths, making it ideal for preparing
 context for large language models (LLMs) or for code analysis.`,
-        RunE: func(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        RunE: func(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
                 // Validate required flags
-                if dirPath == "" </span><span class="cov0" title="0">{
+                if dirPath == "" </span><span class="cov8" title="1">{
                         return fmt.Errorf("--dir flag is required")
-                }</span>
-                <span class="cov0" title="0">if includeFiles == "" </span><span class="cov0" title="0">{
-                        return fmt.Errorf("--include-files flag is required")
                 }</span>
 
                 // Split comma-separated patterns into slices
-                <span class="cov0" title="0">includePatterns := splitPatterns(includeFiles)
-                excludePatterns := splitPatterns(excludeFiles)
+                <span class="cov8" title="1">var includePatterns []string
+                if includeFiles == "" </span><span class="cov8" title="1">{
+                        // If no include pattern is specified, include all files by default
+                        includePatterns = []string{"*"}
+                }</span> else<span class="cov8" title="1"> {
+                        includePatterns = splitPatterns(includeFiles)
+                }</span>
+                <span class="cov8" title="1">excludePatterns := splitPatterns(excludeFiles)
 
                 // Create processor configuration
                 config := processor.Config{
-                        DirPath:      dirPath,
-                        IncludeFiles: includePatterns,
-                        ExcludeFiles: excludePatterns,
-                        Output:       output,
+                        DirPath:        dirPath,
+                        IncludeFiles:   includePatterns,
+                        ExcludeFiles:   excludePatterns,
+                        Output:         output,
+                        EstimateTokens: estimateTokens,
                 }
 
                 // Create and run the processor
@@ -127,7 +130,7 @@ context for large language models (LLMs) or for code analysis.`,
                         return err
                 }</span>
 
-                <span class="cov0" title="0">return proc.Process()</span>
+                <span class="cov8" title="1">return proc.Process()</span>
         },
 }
 
@@ -140,51 +143,41 @@ func Execute() <span class="cov0" title="0">{
         }</span>
 }
 
-func init() <span class="cov0" title="0">{
+func init() <span class="cov8" title="1">{
         // Define flags
         rootCmd.Flags().StringVar(&amp;dirPath, "dir", "", "Root directory path to scan (required)")
-        rootCmd.Flags().StringVar(&amp;includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (required)")
+        rootCmd.Flags().StringVar(&amp;includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (defaults to all files if not specified)")
         rootCmd.Flags().StringVar(&amp;excludeFiles, "exclude-files", "", "Comma-separated list of glob patterns to exclude files")
         rootCmd.Flags().StringVarP(&amp;output, "output", "o", "-", "Output destination (file path or '-' for stdout)")
+        rootCmd.Flags().BoolVar(&amp;estimateTokens, "estimate-tokens", false, "Estimate and display the number of tokens in the output")
 
         // Mark required flags
         rootCmd.MarkFlagRequired("dir")
-        rootCmd.MarkFlagRequired("include-files")
 }</span>
 
 // splitPatterns splits a comma-separated string of patterns into a slice
-func splitPatterns(patterns string) []string <span class="cov0" title="0">{
-        if patterns == "" </span><span class="cov0" title="0">{
+func splitPatterns(patterns string) []string <span class="cov8" title="1">{
+        if patterns == "" </span><span class="cov8" title="1">{
                 return []string{}
         }</span>
 
         // Split by comma and trim whitespace
-        <span class="cov0" title="0">result := make([]string, 0)
-        for _, pattern := range strings.Split(patterns, ",") </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">result := make([]string, 0)
+        for _, pattern := range strings.Split(patterns, ",") </span><span class="cov8" title="1">{
                 trimmed := strings.TrimSpace(pattern)
-                if trimmed != "" </span><span class="cov0" title="0">{
+                if trimmed != "" </span><span class="cov8" title="1">{
                         result = append(result, trimmed)
                 }</span>
         }
 
-        <span class="cov0" title="0">return result</span>
+        <span class="cov8" title="1">return result</span>
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package main
+		<pre class="file" id="file1" style="display: none">package processor
 
 import (
-        "github.com/ethanzhrepo/dir-to-prompt/cmd"
-)
-
-func main() <span class="cov0" title="0">{
-        cmd.Execute()
-}</span>
-</pre>
-		
-		<pre class="file" id="file2" style="display: none">package processor
-
-import (
+        "bytes"
         "fmt"
         "io"
         "os"
@@ -193,14 +186,16 @@ import (
         "strings"
 
         "github.com/gobwas/glob"
+        "github.com/pkoukk/tiktoken-go"
 )
 
 // Config holds the configuration for the directory processor
 type Config struct {
-        DirPath      string
-        IncludeFiles []string
-        ExcludeFiles []string
-        Output       string
+        DirPath        string
+        IncludeFiles   []string
+        ExcludeFiles   []string
+        Output         string
+        EstimateTokens bool
 }
 
 // Processor handles the scanning and processing of files
@@ -240,6 +235,7 @@ func NewProcessor(config Config) (*Processor, error) <span class="cov8" title="1
 // Process scans the directory and processes the files
 func (p *Processor) Process() error <span class="cov8" title="1">{
         var writer io.Writer
+        var totalContent strings.Builder // Used to collect all content for token estimation
 
         // Determine the output destination
         if p.config.Output == "" || p.config.Output == "-" </span><span class="cov8" title="1">{
@@ -273,8 +269,18 @@ func (p *Processor) Process() error <span class="cov8" title="1">{
 
                 // Check if the file should be included
                 <span class="cov8" title="1">if p.shouldIncludeFile(relPath) </span><span class="cov8" title="1">{
-                        matchedFiles = append(matchedFiles, relPath)
-                }</span>
+                        // Pre-check if it's a text file
+                        isText, err := isTextFile(path)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to check if file is text: %w", err)
+                        }</span>
+
+                        <span class="cov8" title="1">if isText </span><span class="cov8" title="1">{
+                                matchedFiles = append(matchedFiles, relPath)
+                        }</span> else<span class="cov8" title="1"> {
+                                fmt.Fprintf(os.Stderr, "Warning: Skipping binary file: %s\n", relPath)
+                        }</span>
+                }
 
                 <span class="cov8" title="1">return nil</span>
         })
@@ -283,8 +289,15 @@ func (p *Processor) Process() error <span class="cov8" title="1">{
                 return err
         }</span>
 
+        // Check if any text files were found
+        <span class="cov8" title="1">if len(matchedFiles) == 0 </span><span class="cov0" title="0">{
+                fmt.Fprintf(os.Stderr, "No text files found or all matched files were binary.\n")
+                return nil
+        }</span>
+
         // Generate and write the directory structure
         <span class="cov8" title="1">dirStructure := p.generateDirectoryStructure(matchedFiles)
+        totalContent.WriteString(dirStructure)
         if _, err := writer.Write([]byte(dirStructure)); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to write directory structure: %w", err)
         }</span>
@@ -292,9 +305,37 @@ func (p *Processor) Process() error <span class="cov8" title="1">{
         // Process each matched file
         <span class="cov8" title="1">for _, relPath := range matchedFiles </span><span class="cov8" title="1">{
                 absPath := filepath.Join(p.config.DirPath, relPath)
-                if err := p.processFile(absPath, relPath, writer); err != nil </span><span class="cov0" title="0">{
+
+                // Create a buffer if we're estimating tokens
+                var contentBuffer bytes.Buffer
+
+                // Process to both writer and buffer if estimating tokens
+                var currentWriter io.Writer
+                if p.config.EstimateTokens </span><span class="cov8" title="1">{
+                        currentWriter = io.MultiWriter(writer, &amp;contentBuffer)
+                }</span> else<span class="cov8" title="1"> {
+                        currentWriter = writer
+                }</span>
+
+                <span class="cov8" title="1">if err := p.processFile(absPath, relPath, currentWriter); err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to process file %s: %w", relPath, err)
                 }</span>
+
+                // Add content for token estimation
+                <span class="cov8" title="1">if p.config.EstimateTokens </span><span class="cov8" title="1">{
+                        totalContent.WriteString(contentBuffer.String())
+                }</span>
+        }
+
+        // Estimate tokens if needed
+        <span class="cov8" title="1">if p.config.EstimateTokens </span><span class="cov8" title="1">{
+                tokens, err := p.estimateTokens(totalContent.String())
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to estimate tokens: %w", err)
+                }</span>
+
+                // Print token estimation to stderr
+                <span class="cov8" title="1">fmt.Fprintf(os.Stderr, "\nEstimated tokens: %d\n", tokens)</span>
         }
 
         <span class="cov8" title="1">return nil</span>
@@ -432,7 +473,7 @@ func (p *Processor) shouldIncludeFile(relPath string) bool <span class="cov8" ti
 
 // processFile reads a file and writes its content to the output
 func (p *Processor) processFile(absPath, relPath string, writer io.Writer) error <span class="cov8" title="1">{
-        // Read the file content
+        // Read the file content - we already checked it's a text file during initial scanning
         content, err := os.ReadFile(absPath)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to read file: %w", err)
@@ -458,6 +499,62 @@ func (p *Processor) processFile(absPath, relPath string, writer io.Writer) error
         }</span>
 
         <span class="cov8" title="1">return nil</span>
+}
+
+// estimateTokens estimates the number of tokens in the given text
+func (p *Processor) estimateTokens(text string) (int, error) <span class="cov8" title="1">{
+        tkm, err := tiktoken.EncodingForModel("gpt-3.5-turbo")
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("failed to get encoding: %w", err)
+        }</span>
+
+        // Encode the text to tokens
+        <span class="cov8" title="1">tokens := tkm.Encode(text, nil, nil)
+
+        return len(tokens), nil</span>
+}
+
+// isTextFile checks if a file is a text file by examining its content
+func isTextFile(filePath string) (bool, error) <span class="cov8" title="1">{
+        // Read the first 512 bytes of the file to detect content type
+        file, err := os.Open(filePath)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, fmt.Errorf("failed to open file for text detection: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer file.Close()
+
+        // Read a small chunk to check if it's a text file
+        // We'll use a 512-byte buffer, which should be enough to detect most binary files
+        buffer := make([]byte, 512)
+        n, err := file.Read(buffer)
+        if err != nil &amp;&amp; err != io.EOF </span><span class="cov0" title="0">{
+                return false, fmt.Errorf("failed to read file for text detection: %w", err)
+        }</span>
+
+        // Reduce buffer to the number of bytes actually read
+        <span class="cov8" title="1">buffer = buffer[:n]
+
+        // Check for NULL bytes, which are a strong indicator of binary content
+        if bytes.IndexByte(buffer, 0) != -1 </span><span class="cov8" title="1">{
+                return false, nil
+        }</span>
+
+        // Check the ratio of control characters to printable characters
+        // Text files usually have a low ratio of control characters
+        <span class="cov8" title="1">controlCount := 0
+        for _, b := range buffer </span><span class="cov8" title="1">{
+                // Count control characters (non-printable and not common whitespace)
+                if (b &lt; 32 &amp;&amp; b != 9 &amp;&amp; b != 10 &amp;&amp; b != 13) || b &gt;= 127 </span><span class="cov0" title="0">{
+                        controlCount++
+                }</span>
+        }
+
+        // If more than 10% of the characters are control characters, it's likely binary
+        <span class="cov8" title="1">if n &gt; 0 &amp;&amp; float64(controlCount)/float64(n) &gt; 0.1 </span><span class="cov0" title="0">{
+                return false, nil
+        }</span>
+
+        <span class="cov8" title="1">return true, nil</span>
 }
 </pre>
 		

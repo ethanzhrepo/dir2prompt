@@ -93,7 +93,17 @@ func (p *Processor) Process() error {
 
 		// Check if the file should be included
 		if p.shouldIncludeFile(relPath) {
-			matchedFiles = append(matchedFiles, relPath)
+			// Pre-check if it's a text file
+			isText, err := isTextFile(path)
+			if err != nil {
+				return fmt.Errorf("failed to check if file is text: %w", err)
+			}
+
+			if isText {
+				matchedFiles = append(matchedFiles, relPath)
+			} else {
+				fmt.Fprintf(os.Stderr, "Warning: Skipping binary file: %s\n", relPath)
+			}
 		}
 
 		return nil
@@ -101,6 +111,12 @@ func (p *Processor) Process() error {
 
 	if err != nil {
 		return err
+	}
+
+	// Check if any text files were found
+	if len(matchedFiles) == 0 {
+		fmt.Fprintf(os.Stderr, "No text files found or all matched files were binary.\n")
+		return nil
 	}
 
 	// Generate and write the directory structure
@@ -129,7 +145,7 @@ func (p *Processor) Process() error {
 			return fmt.Errorf("failed to process file %s: %w", relPath, err)
 		}
 
-		// Add to total content if estimating tokens
+		// Add content for token estimation
 		if p.config.EstimateTokens {
 			totalContent.WriteString(contentBuffer.String())
 		}
@@ -281,7 +297,7 @@ func (p *Processor) shouldIncludeFile(relPath string) bool {
 
 // processFile reads a file and writes its content to the output
 func (p *Processor) processFile(absPath, relPath string, writer io.Writer) error {
-	// Read the file content
+	// Read the file content - we already checked it's a text file during initial scanning
 	content, err := os.ReadFile(absPath)
 	if err != nil {
 		return fmt.Errorf("failed to read file: %w", err)
@@ -320,4 +336,47 @@ func (p *Processor) estimateTokens(text string) (int, error) {
 	tokens := tkm.Encode(text, nil, nil)
 
 	return len(tokens), nil
+}
+
+// isTextFile checks if a file is a text file by examining its content
+func isTextFile(filePath string) (bool, error) {
+	// Read the first 512 bytes of the file to detect content type
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false, fmt.Errorf("failed to open file for text detection: %w", err)
+	}
+	defer file.Close()
+
+	// Read a small chunk to check if it's a text file
+	// We'll use a 512-byte buffer, which should be enough to detect most binary files
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return false, fmt.Errorf("failed to read file for text detection: %w", err)
+	}
+
+	// Reduce buffer to the number of bytes actually read
+	buffer = buffer[:n]
+
+	// Check for NULL bytes, which are a strong indicator of binary content
+	if bytes.IndexByte(buffer, 0) != -1 {
+		return false, nil
+	}
+
+	// Check the ratio of control characters to printable characters
+	// Text files usually have a low ratio of control characters
+	controlCount := 0
+	for _, b := range buffer {
+		// Count control characters (non-printable and not common whitespace)
+		if (b < 32 && b != 9 && b != 10 && b != 13) || b >= 127 {
+			controlCount++
+		}
+	}
+
+	// If more than 10% of the characters are control characters, it's likely binary
+	if n > 0 && float64(controlCount)/float64(n) > 0.1 {
+		return false, nil
+	}
+
+	return true, nil
 }

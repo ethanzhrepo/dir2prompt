@@ -58,6 +58,17 @@ func cleanupTestDir(path string) {
 	os.RemoveAll(path)
 }
 
+// setupBinaryFile creates a simple binary file for testing
+func setupBinaryFile(t *testing.T, dir string) string {
+	// Create a binary file with some NULL bytes
+	binaryPath := filepath.Join(dir, "binary.bin")
+	binaryContent := []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0x00, 0xFD}
+	if err := os.WriteFile(binaryPath, binaryContent, 0644); err != nil {
+		t.Fatalf("Failed to create binary file: %v", err)
+	}
+	return binaryPath
+}
+
 // TestNewProcessor tests the creation of a new processor
 func TestNewProcessor(t *testing.T) {
 	config := Config{
@@ -333,5 +344,240 @@ func TestProcessWithOutputFile(t *testing.T) {
 		if strings.Contains(output, "File: "+file) {
 			t.Errorf("Output contains unexpected file: %s", file)
 		}
+	}
+}
+
+// TestIsTextFile tests the text file detection functionality
+func TestIsTextFile(t *testing.T) {
+	tempDir := setupTestDir(t)
+	defer cleanupTestDir(tempDir)
+	binaryPath := setupBinaryFile(t, tempDir)
+
+	testCases := []struct {
+		path     string
+		expected bool
+		name     string
+	}{
+		{filepath.Join(tempDir, "file1.txt"), true, "text file"},
+		{filepath.Join(tempDir, "file2.go"), true, "go file"},
+		{binaryPath, false, "binary file"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := isTextFile(tc.path)
+			if err != nil {
+				t.Fatalf("isTextFile(%s) error: %v", tc.path, err)
+			}
+			if result != tc.expected {
+				t.Errorf("isTextFile(%s) = %v, want %v", tc.path, result, tc.expected)
+			}
+		})
+	}
+}
+
+// TestEstimateTokens tests the token estimation functionality
+func TestEstimateTokens(t *testing.T) {
+	config := Config{
+		DirPath:      ".",
+		IncludeFiles: []string{"*.go"},
+		ExcludeFiles: []string{},
+		Output:       "-",
+	}
+
+	processor, err := NewProcessor(config)
+	if err != nil {
+		t.Fatalf("Failed to create processor: %v", err)
+	}
+
+	testCases := []struct {
+		text     string
+		expected int
+		name     string
+	}{
+		{"Hello, world!", 3, "short text"},
+		{"This is a longer text with multiple tokens that should be counted.", 13, "medium text"},
+		{"", 0, "empty text"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			count, err := processor.estimateTokens(tc.text)
+			if err != nil {
+				t.Fatalf("estimateTokens error: %v", err)
+			}
+			// Token count might vary slightly with model versions, so we'll check if it's within a reasonable range
+			if count < tc.expected-1 || count > tc.expected+1 {
+				t.Errorf("estimateTokens(%q) = %v, want approximately %v", tc.text, count, tc.expected)
+			}
+		})
+	}
+}
+
+// TestProcessWithBinaryFiles tests how the processor handles binary files
+func TestProcessWithBinaryFiles(t *testing.T) {
+	tempDir := setupTestDir(t)
+	defer cleanupTestDir(tempDir)
+	binaryPath := setupBinaryFile(t, tempDir)
+
+	config := Config{
+		DirPath:      tempDir,
+		IncludeFiles: []string{"*"},
+		ExcludeFiles: []string{},
+		Output:       "-",
+	}
+
+	processor, err := NewProcessor(config)
+	if err != nil {
+		t.Fatalf("Failed to create processor: %v", err)
+	}
+
+	// Capture stdout and stderr
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
+	stdoutR, stdoutW, _ := os.Pipe()
+	stderrR, stderrW, _ := os.Pipe()
+	os.Stdout = stdoutW
+	os.Stderr = stderrW
+
+	// Run Process
+	err = processor.Process()
+
+	// Close writers and restore stdout/stderr
+	stdoutW.Close()
+	stderrW.Close()
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
+
+	// Read captured output
+	var stdoutBuf, stderrBuf bytes.Buffer
+	io.Copy(&stdoutBuf, stdoutR)
+	io.Copy(&stderrBuf, stderrR)
+
+	stdoutOutput := stdoutBuf.String()
+	stderrOutput := stderrBuf.String()
+
+	// Check that process completed successfully
+	if err != nil {
+		t.Fatalf("Process failed: %v", err)
+	}
+
+	// Check that stderr contains the warning about the binary file
+	if !strings.Contains(stderrOutput, "Warning: Skipping binary file") {
+		t.Error("Expected warning about binary file, but none found in stderr")
+	}
+
+	// Check that the binary file is not in the output
+	relBinaryPath, _ := filepath.Rel(tempDir, binaryPath)
+	if strings.Contains(stdoutOutput, "File: "+relBinaryPath) {
+		t.Error("Binary file was incorrectly included in the output")
+	}
+
+	// Check that text files are still included
+	if !strings.Contains(stdoutOutput, "File: file1.txt") {
+		t.Error("Text file was not included in the output")
+	}
+}
+
+// TestProcessWithNoInclude tests processing when no include pattern is specified
+func TestProcessWithNoInclude(t *testing.T) {
+	tempDir := setupTestDir(t)
+	defer cleanupTestDir(tempDir)
+
+	config := Config{
+		DirPath:      tempDir,
+		IncludeFiles: []string{"*"}, // This is what we set when no include pattern is specified
+		ExcludeFiles: []string{"*.tmp"},
+		Output:       "-",
+	}
+
+	processor, err := NewProcessor(config)
+	if err != nil {
+		t.Fatalf("Failed to create processor: %v", err)
+	}
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Run Process
+	err = processor.Process()
+	if err != nil {
+		t.Fatalf("Process failed: %v", err)
+	}
+
+	// Restore stdout and get output
+	w.Close()
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	output := buf.String()
+
+	// Check that all non-tmp files are included
+	expectedFiles := []string{"file1.txt", "file2.go", "file3.md", "file4.go", "file5.go", "file6.txt", "file7.txt"}
+	for _, file := range expectedFiles {
+		if !strings.Contains(output, file) {
+			t.Errorf("Output missing expected file: %s", file)
+		}
+	}
+
+	// Check that excluded files are not in output
+	if strings.Contains(output, "file8.tmp") {
+		t.Error("Output contains excluded file: file8.tmp")
+	}
+}
+
+// TestProcessWithTokenEstimation tests token estimation functionality
+func TestProcessWithTokenEstimation(t *testing.T) {
+	tempDir := setupTestDir(t)
+	defer cleanupTestDir(tempDir)
+
+	config := Config{
+		DirPath:        tempDir,
+		IncludeFiles:   []string{"*.txt"},
+		ExcludeFiles:   []string{},
+		Output:         "-",
+		EstimateTokens: true,
+	}
+
+	processor, err := NewProcessor(config)
+	if err != nil {
+		t.Fatalf("Failed to create processor: %v", err)
+	}
+
+	// Capture stdout and stderr
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
+	stdoutR, stdoutW, _ := os.Pipe()
+	stderrR, stderrW, _ := os.Pipe()
+	os.Stdout = stdoutW
+	os.Stderr = stderrW
+
+	// Run Process
+	err = processor.Process()
+
+	// Close writers and restore stdout/stderr
+	stdoutW.Close()
+	stderrW.Close()
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
+
+	// Read captured output
+	var stdoutBuf, stderrBuf bytes.Buffer
+	io.Copy(&stdoutBuf, stdoutR)
+	io.Copy(&stderrBuf, stderrR)
+
+	stderrOutput := stderrBuf.String()
+
+	// Check that process completed successfully
+	if err != nil {
+		t.Fatalf("Process failed: %v", err)
+	}
+
+	// Check that stderr contains the token estimation
+	if !strings.Contains(stderrOutput, "Estimated tokens:") {
+		t.Error("Expected token estimation in stderr, but none found")
 	}
 }

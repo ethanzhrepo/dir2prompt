@@ -31,12 +31,15 @@ context for large language models (LLMs) or for code analysis.`,
 		if dirPath == "" {
 			return fmt.Errorf("--dir flag is required")
 		}
-		if includeFiles == "" {
-			return fmt.Errorf("--include-files flag is required")
-		}
 
 		// Split comma-separated patterns into slices
-		includePatterns := splitPatterns(includeFiles)
+		var includePatterns []string
+		if includeFiles == "" {
+			// If no include pattern is specified, include all files by default
+			includePatterns = []string{"*"}
+		} else {
+			includePatterns = splitPatterns(includeFiles)
+		}
 		excludePatterns := splitPatterns(excludeFiles)
 
 		// Create processor configuration
@@ -70,14 +73,13 @@ func Execute() {
 func init() {
 	// Define flags
 	rootCmd.Flags().StringVar(&dirPath, "dir", "", "Root directory path to scan (required)")
-	rootCmd.Flags().StringVar(&includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (required)")
+	rootCmd.Flags().StringVar(&includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (defaults to all files if not specified)")
 	rootCmd.Flags().StringVar(&excludeFiles, "exclude-files", "", "Comma-separated list of glob patterns to exclude files")
 	rootCmd.Flags().StringVarP(&output, "output", "o", "-", "Output destination (file path or '-' for stdout)")
 	rootCmd.Flags().BoolVar(&estimateTokens, "estimate-tokens", false, "Estimate and display the number of tokens in the output")
 
 	// Mark required flags
 	rootCmd.MarkFlagRequired("dir")
-	rootCmd.MarkFlagRequired("include-files")
 }
 
 // splitPatterns splits a comma-separated string of patterns into a slice
