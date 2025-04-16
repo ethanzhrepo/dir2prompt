@@ -80,15 +80,30 @@ func (p *Processor) Process() error {
 			return err
 		}
 
-		// Skip directories in the final list
-		if info.IsDir() {
-			return nil
-		}
-
 		// Get relative path to base directory
 		relPath, err := filepath.Rel(p.config.DirPath, path)
 		if err != nil {
 			return fmt.Errorf("failed to get relative path: %w", err)
+		}
+
+		// Skip .git directories and hidden directories (starting with .)
+		if info.IsDir() {
+			// Skip .git directories
+			if info.Name() == ".git" {
+				return filepath.SkipDir
+			}
+
+			// Skip hidden directories (starting with .)
+			if strings.HasPrefix(info.Name(), ".") {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		// Skip .gitignore and other hidden files (starting with .)
+		if strings.HasPrefix(info.Name(), ".") {
+			return nil
 		}
 
 		// Check if the file should be included
@@ -340,6 +355,18 @@ func (p *Processor) estimateTokens(text string) (int, error) {
 
 // isTextFile checks if a file is a text file by examining its content
 func isTextFile(filePath string) (bool, error) {
+	// Special handling for known text file extensions
+	knownTextExtensions := []string{".go", ".js", ".ts", ".py", ".txt", ".md", ".html", ".css", ".json", ".xml", ".yaml", ".yml", ".toml"}
+
+	// Get file extension
+	ext := strings.ToLower(filepath.Ext(filePath))
+	for _, textExt := range knownTextExtensions {
+		if ext == textExt {
+			// Known text file extension, skip binary check
+			return true, nil
+		}
+	}
+
 	// Read the first 512 bytes of the file to detect content type
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -373,8 +400,8 @@ func isTextFile(filePath string) (bool, error) {
 		}
 	}
 
-	// If more than 10% of the characters are control characters, it's likely binary
-	if n > 0 && float64(controlCount)/float64(n) > 0.1 {
+	// More permissive threshold (30% instead of 10%)
+	if n > 0 && float64(controlCount)/float64(n) > 0.3 {
 		return false, nil
 	}
 

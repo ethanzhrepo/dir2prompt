@@ -69,6 +69,44 @@ func setupBinaryFile(t *testing.T, dir string) string {
 	return binaryPath
 }
 
+// setupTestDirWithHiddenFiles creates a temporary test directory with hidden files and git-related files
+func setupTestDirWithHiddenFiles(t *testing.T) string {
+	tempDir := setupTestDir(t)
+
+	// Create hidden files and directories
+	hiddenDirs := []string{
+		filepath.Join(tempDir, ".hidden"),
+		filepath.Join(tempDir, ".git"),
+		filepath.Join(tempDir, ".vscode"),
+	}
+
+	for _, dir := range hiddenDirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			os.RemoveAll(tempDir)
+			t.Fatalf("Failed to create hidden directory %s: %v", dir, err)
+		}
+	}
+
+	// Create hidden files
+	hiddenFiles := map[string]string{
+		filepath.Join(tempDir, ".gitignore"):               "*.tmp\n*.log\n",
+		filepath.Join(tempDir, ".hidden", "secret.txt"):    "Hidden file content",
+		filepath.Join(tempDir, ".git", "HEAD"):             "ref: refs/heads/main",
+		filepath.Join(tempDir, ".git", "config"):           "[core]\n\trepositoryformatversion = 0\n",
+		filepath.Join(tempDir, ".vscode", "settings.json"): "{ \"editor.tabSize\": 4 }",
+		filepath.Join(tempDir, "dir1", ".hidden_file.txt"): "Hidden file in dir1",
+	}
+
+	for path, content := range hiddenFiles {
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			os.RemoveAll(tempDir)
+			t.Fatalf("Failed to create hidden file %s: %v", path, err)
+		}
+	}
+
+	return tempDir
+}
+
 // TestNewProcessor tests the creation of a new processor
 func TestNewProcessor(t *testing.T) {
 	config := Config{
@@ -579,5 +617,80 @@ func TestProcessWithTokenEstimation(t *testing.T) {
 	// Check that stderr contains the token estimation
 	if !strings.Contains(stderrOutput, "Estimated tokens:") {
 		t.Error("Expected token estimation in stderr, but none found")
+	}
+}
+
+// TestExcludeHiddenAndGitFiles tests that hidden files and .git files are excluded
+func TestExcludeHiddenAndGitFiles(t *testing.T) {
+	tempDir := setupTestDirWithHiddenFiles(t)
+	defer cleanupTestDir(tempDir)
+
+	config := Config{
+		DirPath:      tempDir,
+		IncludeFiles: []string{"*"},
+		ExcludeFiles: []string{},
+		Output:       "-",
+	}
+
+	processor, err := NewProcessor(config)
+	if err != nil {
+		t.Fatalf("Failed to create processor: %v", err)
+	}
+
+	// Capture stdout and stderr
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
+	stdoutR, stdoutW, _ := os.Pipe()
+	stderrR, stderrW, _ := os.Pipe()
+	os.Stdout = stdoutW
+	os.Stderr = stderrW
+
+	// Run Process
+	err = processor.Process()
+
+	// Close writers and restore stdout/stderr
+	stdoutW.Close()
+	stderrW.Close()
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
+
+	// Read captured output
+	var stdoutBuf, stderrBuf bytes.Buffer
+	io.Copy(&stdoutBuf, stdoutR)
+	io.Copy(&stderrBuf, stderrR)
+
+	stdoutOutput := stdoutBuf.String()
+
+	// Check that process completed successfully
+	if err != nil {
+		t.Fatalf("Process failed: %v", err)
+	}
+
+	// Check that hidden files and directories are not included
+	hiddenItems := []string{
+		".gitignore",
+		".hidden",
+		".git",
+		".vscode",
+		"secret.txt",
+		"HEAD",
+		"config",
+		"settings.json",
+		".hidden_file.txt",
+	}
+
+	for _, item := range hiddenItems {
+		if strings.Contains(stdoutOutput, "File: "+item) ||
+			strings.Contains(stdoutOutput, "/"+item) {
+			t.Errorf("Hidden item was incorrectly included in the output: %s", item)
+		}
+	}
+
+	// Check that regular files are still included
+	regularFiles := []string{"file1.txt", "file2.go"}
+	for _, file := range regularFiles {
+		if !strings.Contains(stdoutOutput, file) {
+			t.Errorf("Regular file was not included in the output: %s", file)
+		}
 	}
 }

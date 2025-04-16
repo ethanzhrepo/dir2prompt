@@ -25,7 +25,10 @@ var rootCmd = &cobra.Command{
 selecting text files based on include/exclude rules, and outputting their
 contents to a single output stream or file. The output is formatted with
 clear delimiters indicating source file paths, making it ideal for preparing
-context for large language models (LLMs) or for code analysis.`,
+context for large language models (LLMs) or for code analysis.
+
+The tool automatically ignores all hidden directories and files (starting with '.'),
+including .git directories and git-related files such as .gitignore.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Validate required flags
 		if dirPath == "" {
