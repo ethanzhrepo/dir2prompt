@@ -7,6 +7,7 @@
 *.dll
 *.so
 *.dylib
+bin/
 
 # Test binary, built with `go test -c`
 *.test
@@ -23,3 +24,22 @@ go.work.sum
 
 # env file
 .env
+
+# Output files
+test-output.txt
+
+# IDE/Editor specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+test
+final_test.txt
+
+test_output.txt
+test*

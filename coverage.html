@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/ethanzhrepo/dir-to-prompt/cmd/root.go (0.0%)</option>
+				
+				<option value="file1">github.com/ethanzhrepo/dir-to-prompt/main.go (0.0%)</option>
+				
+				<option value="file2">github.com/ethanzhrepo/dir-to-prompt/pkg/processor/processor.go (88.8%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package cmd
+
+import (
+        "fmt"
+        "os"
+        "strings"
+
+        "github.com/ethanzhrepo/dir-to-prompt/pkg/processor"
+        "github.com/spf13/cobra"
+)
+
+var (
+        dirPath      string
+        includeFiles string
+        excludeFiles string
+        output       string
+)
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &amp;cobra.Command{
+        Use:   "dir-to-prompt",
+        Short: "Scan a directory and output files content based on include/exclude patterns",
+        Long: `dir-to-prompt is a command line tool for scanning a specified directory,
+selecting text files based on include/exclude rules, and outputting their
+contents to a single output stream or file. The output is formatted with
+clear delimiters indicating source file paths, making it ideal for preparing
+context for large language models (LLMs) or for code analysis.`,
+        RunE: func(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+                // Validate required flags
+                if dirPath == "" </span><span class="cov0" title="0">{
+                        return fmt.Errorf("--dir flag is required")
+                }</span>
+                <span class="cov0" title="0">if includeFiles == "" </span><span class="cov0" title="0">{
+                        return fmt.Errorf("--include-files flag is required")
+                }</span>
+
+                // Split comma-separated patterns into slices
+                <span class="cov0" title="0">includePatterns := splitPatterns(includeFiles)
+                excludePatterns := splitPatterns(excludeFiles)
+
+                // Create processor configuration
+                config := processor.Config{
+                        DirPath:      dirPath,
+                        IncludeFiles: includePatterns,
+                        ExcludeFiles: excludePatterns,
+                        Output:       output,
+                }
+
+                // Create and run the processor
+                proc, err := processor.NewProcessor(config)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov0" title="0">return proc.Process()</span>
+        },
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() <span class="cov0" title="0">{
+        err := rootCmd.Execute()
+        if err != nil </span><span class="cov0" title="0">{
+                os.Exit(1)
+        }</span>
+}
+
+func init() <span class="cov0" title="0">{
+        // Define flags
+        rootCmd.Flags().StringVar(&amp;dirPath, "dir", "", "Root directory path to scan (required)")
+        rootCmd.Flags().StringVar(&amp;includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (required)")
+        rootCmd.Flags().StringVar(&amp;excludeFiles, "exclude-files", "", "Comma-separated list of glob patterns to exclude files")
+        rootCmd.Flags().StringVarP(&amp;output, "output", "o", "-", "Output destination (file path or '-' for stdout)")
+
+        // Mark required flags
+        rootCmd.MarkFlagRequired("dir")
+        rootCmd.MarkFlagRequired("include-files")
+}</span>
+
+// splitPatterns splits a comma-separated string of patterns into a slice
+func splitPatterns(patterns string) []string <span class="cov0" title="0">{
+        if patterns == "" </span><span class="cov0" title="0">{
+                return []string{}
+        }</span>
+
+        // Split by comma and trim whitespace
+        <span class="cov0" title="0">result := make([]string, 0)
+        for _, pattern := range strings.Split(patterns, ",") </span><span class="cov0" title="0">{
+                trimmed := strings.TrimSpace(pattern)
+                if trimmed != "" </span><span class="cov0" title="0">{
+                        result = append(result, trimmed)
+                }</span>
+        }
+
+        <span class="cov0" title="0">return result</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "github.com/ethanzhrepo/dir-to-prompt/cmd"
+)
+
+func main() <span class="cov0" title="0">{
+        cmd.Execute()
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package processor
+
+import (
+        "fmt"
+        "io"
+        "os"
+        "path/filepath"
+        "sort"
+        "strings"
+
+        "github.com/gobwas/glob"
+)
+
+// Config holds the configuration for the directory processor
+type Config struct {
+        DirPath      string
+        IncludeFiles []string
+        ExcludeFiles []string
+        Output       string
+}
+
+// Processor handles the scanning and processing of files
+type Processor struct {
+        config         Config
+        includeMatches []glob.Glob
+        excludeMatches []glob.Glob
+}
+
+// NewProcessor creates a new Processor with the given configuration
+func NewProcessor(config Config) (*Processor, error) <span class="cov8" title="1">{
+        p := &amp;Processor{
+                config: config,
+        }
+
+        // Compile include patterns
+        for _, pattern := range config.IncludeFiles </span><span class="cov8" title="1">{
+                g, err := glob.Compile(pattern)
+                if err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("invalid include pattern '%s': %w", pattern, err)
+                }</span>
+                <span class="cov8" title="1">p.includeMatches = append(p.includeMatches, g)</span>
+        }
+
+        // Compile exclude patterns
+        <span class="cov8" title="1">for _, pattern := range config.ExcludeFiles </span><span class="cov8" title="1">{
+                g, err := glob.Compile(pattern)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("invalid exclude pattern '%s': %w", pattern, err)
+                }</span>
+                <span class="cov8" title="1">p.excludeMatches = append(p.excludeMatches, g)</span>
+        }
+
+        <span class="cov8" title="1">return p, nil</span>
+}
+
+// Process scans the directory and processes the files
+func (p *Processor) Process() error <span class="cov8" title="1">{
+        var writer io.Writer
+
+        // Determine the output destination
+        if p.config.Output == "" || p.config.Output == "-" </span><span class="cov8" title="1">{
+                writer = os.Stdout
+        }</span> else<span class="cov8" title="1"> {
+                file, err := os.Create(p.config.Output)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create output file: %w", err)
+                }</span>
+                <span class="cov8" title="1">defer file.Close()
+                writer = file</span>
+        }
+
+        // First collect all matching files
+        <span class="cov8" title="1">matchedFiles := []string{}
+        err := filepath.Walk(p.config.DirPath, func(path string, info os.FileInfo, err error) error </span><span class="cov8" title="1">{
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                // Skip directories in the final list
+                <span class="cov8" title="1">if info.IsDir() </span><span class="cov8" title="1">{
+                        return nil
+                }</span>
+
+                // Get relative path to base directory
+                <span class="cov8" title="1">relPath, err := filepath.Rel(p.config.DirPath, path)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to get relative path: %w", err)
+                }</span>
+
+                // Check if the file should be included
+                <span class="cov8" title="1">if p.shouldIncludeFile(relPath) </span><span class="cov8" title="1">{
+                        matchedFiles = append(matchedFiles, relPath)
+                }</span>
+
+                <span class="cov8" title="1">return nil</span>
+        })
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Generate and write the directory structure
+        <span class="cov8" title="1">dirStructure := p.generateDirectoryStructure(matchedFiles)
+        if _, err := writer.Write([]byte(dirStructure)); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write directory structure: %w", err)
+        }</span>
+
+        // Process each matched file
+        <span class="cov8" title="1">for _, relPath := range matchedFiles </span><span class="cov8" title="1">{
+                absPath := filepath.Join(p.config.DirPath, relPath)
+                if err := p.processFile(absPath, relPath, writer); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to process file %s: %w", relPath, err)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// generateDirectoryStructure creates a tree-like representation of the directory structure
+func (p *Processor) generateDirectoryStructure(files []string) string <span class="cov8" title="1">{
+        if len(files) == 0 </span><span class="cov0" title="0">{
+                return "No files matched the criteria.\n\n"
+        }</span>
+
+        // Sort files to ensure consistent output
+        <span class="cov8" title="1">sort.Strings(files)
+
+        // Build a tree structure
+        type Node struct {
+                Name     string
+                IsDir    bool
+                Children map[string]*Node
+        }
+
+        root := &amp;Node{
+                Name:     "./",
+                IsDir:    true,
+                Children: make(map[string]*Node),
+        }
+
+        // Add files to the tree
+        for _, file := range files </span><span class="cov8" title="1">{
+                // Convert backslashes to forward slashes for consistency
+                file = filepath.ToSlash(file)
+
+                parts := strings.Split(file, "/")
+                currentNode := root
+
+                // Build the directory structure
+                for i, part := range parts </span><span class="cov8" title="1">{
+                        isFile := i == len(parts)-1
+
+                        if _, exists := currentNode.Children[part]; !exists </span><span class="cov8" title="1">{
+                                currentNode.Children[part] = &amp;Node{
+                                        Name:     part,
+                                        IsDir:    !isFile,
+                                        Children: make(map[string]*Node),
+                                }
+                        }</span>
+
+                        <span class="cov8" title="1">if !isFile </span><span class="cov8" title="1">{
+                                currentNode = currentNode.Children[part]
+                        }</span>
+                }
+        }
+
+        // Render the tree
+        <span class="cov8" title="1">var sb strings.Builder
+        sb.WriteString("Directory Structure:\n\n")
+
+        // Define a recursive function to print the tree
+        var printTree func(node *Node, prefix string, isLast bool, isRoot bool)
+        printTree = func(node *Node, prefix string, isLast bool, isRoot bool) </span><span class="cov8" title="1">{
+                // Prepare the line prefix
+                var nodePrefix string
+                if isRoot </span><span class="cov8" title="1">{
+                        nodePrefix = "└── "
+                }</span> else<span class="cov8" title="1"> if isLast </span><span class="cov8" title="1">{
+                        nodePrefix = "└── "
+                }</span> else<span class="cov8" title="1"> {
+                        nodePrefix = "├── "
+                }</span>
+
+                // Print the current node
+                <span class="cov8" title="1">if isRoot </span><span class="cov8" title="1">{
+                        sb.WriteString(nodePrefix + node.Name + "\n")
+                }</span> else<span class="cov8" title="1"> {
+                        sb.WriteString(prefix + nodePrefix + node.Name + "\n")
+                }</span>
+
+                // Process children
+                <span class="cov8" title="1">childPrefix := prefix
+                if !isRoot </span><span class="cov8" title="1">{
+                        if isLast </span><span class="cov8" title="1">{
+                                childPrefix += "    "
+                        }</span> else<span class="cov8" title="1"> {
+                                childPrefix += "│   "
+                        }</span>
+                }
+
+                // Convert the map to a sorted slice for consistent output
+                <span class="cov8" title="1">var children []*Node
+                for _, child := range node.Children </span><span class="cov8" title="1">{
+                        children = append(children, child)
+                }</span>
+
+                // Sort children (directories first, then by name)
+                <span class="cov8" title="1">sort.Slice(children, func(i, j int) bool </span><span class="cov8" title="1">{
+                        if children[i].IsDir != children[j].IsDir </span><span class="cov8" title="1">{
+                                return children[i].IsDir // Directories come first
+                        }</span>
+                        <span class="cov8" title="1">return children[i].Name &lt; children[j].Name</span> // Alphabetical order
+                })
+
+                // Print each child
+                <span class="cov8" title="1">for i, child := range children </span><span class="cov8" title="1">{
+                        isLastChild := i == len(children)-1
+                        printTree(child, childPrefix, isLastChild, false)
+                }</span>
+        }
+
+        // Start the recursive printing
+        <span class="cov8" title="1">printTree(root, "", true, true)
+
+        sb.WriteString("\n")
+        return sb.String()</span>
+}
+
+// shouldIncludeFile checks if a file should be included based on the include/exclude patterns
+func (p *Processor) shouldIncludeFile(relPath string) bool <span class="cov8" title="1">{
+        // First check if the file is excluded
+        for _, matcher := range p.excludeMatches </span><span class="cov8" title="1">{
+                if matcher.Match(relPath) </span><span class="cov8" title="1">{
+                        return false
+                }</span>
+        }
+
+        // Then check if the file is included
+        <span class="cov8" title="1">for _, matcher := range p.includeMatches </span><span class="cov8" title="1">{
+                if matcher.Match(relPath) </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+
+        // If no include patterns match, exclude the file
+        <span class="cov8" title="1">return false</span>
+}
+
+// processFile reads a file and writes its content to the output
+func (p *Processor) processFile(absPath, relPath string, writer io.Writer) error <span class="cov8" title="1">{
+        // Read the file content
+        content, err := os.ReadFile(absPath)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to read file: %w", err)
+        }</span>
+
+        // Convert Windows-style paths to Unix-style for consistency
+        <span class="cov8" title="1">relPath = filepath.ToSlash(relPath)
+
+        // Write the file header
+        header := fmt.Sprintf("---\nFile: %s\n---\n\n", relPath)
+        if _, err := writer.Write([]byte(header)); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write header: %w", err)
+        }</span>
+
+        // Write the file content
+        <span class="cov8" title="1">if _, err := writer.Write(content); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write content: %w", err)
+        }</span>
+
+        // Add a newline after each file
+        <span class="cov8" title="1">if _, err := writer.Write([]byte("\n\n")); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write newline: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
