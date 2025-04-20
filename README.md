@@ -51,13 +51,19 @@ Download the binary for your system from the [Releases](https://github.com/ethan
 ## 🛠️ Usage
 
 ```bash
-dir2prompt --dir <directory-path> --include-files <include-patterns> [--exclude-files <exclude-patterns>] [--output <output-file-or-stdout>] [--estimate-tokens]
+dir2prompt [directory] [flags]
+```
+
+or
+
+```bash
+dir2prompt --dir <directory-path> [flags]
 ```
 
 ### Parameters
 
-* **--dir \<directory-path\>:** (Required) Path to the root directory to scan.
-* **--include-files \<include-patterns\>:** (Optional) List of glob patterns to match files to include, comma-separated. Patterns are matched against file paths relative to the --dir directory.
+* **directory or --dir \<directory-path\>:** (Required) Path to the root directory to scan. Can be specified as the first positional argument or with the --dir flag.
+* **--include-files \<include-patterns\>:** (Optional) List of glob patterns to match files to include, comma-separated. Patterns are matched against file paths relative to the directory.
   * Example: `*.go,*.txt,docs/*.md`
   * If not specified, defaults to include all files (`*`).
 * **--exclude-files \<exclude-patterns\>:** (Optional) List of glob patterns to match files to exclude, comma-separated. Files matching these patterns will be ignored, even if they also match an include pattern.
@@ -73,6 +79,12 @@ dir2prompt --dir <directory-path> --include-files <include-patterns> [--exclude-
 ### Examples
 
 Include all files in the `~/myproject` directory, exclude test files, and output to the console:
+
+```bash
+dir2prompt ~/myproject --exclude-files "*_test.go"
+```
+
+The same command using flags instead of positional argument:
 
 ```bash
 dir2prompt --dir ~/myproject --exclude-files "*_test.go"

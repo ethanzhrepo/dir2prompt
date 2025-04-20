@@ -19,7 +19,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "dir2prompt",
+	Use:   "dir2prompt [directory]",
 	Short: "Scan a directory and output files content based on include/exclude patterns",
 	Long: `dir2prompt is a command line tool for scanning a specified directory,
 selecting text files based on include/exclude rules, and outputting their
@@ -30,9 +30,14 @@ context for large language models (LLMs) or for code analysis.
 The tool automatically ignores all hidden directories and files (starting with '.'),
 including .git directories and git-related files such as .gitignore.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// 检查是否有位置参数作为目录路径
+		if len(args) > 0 && dirPath == "" {
+			dirPath = args[0]
+		}
+
 		// Validate required flags
 		if dirPath == "" {
-			return fmt.Errorf("--dir flag is required")
+			return fmt.Errorf("directory path is required, either as positional argument or with --dir flag")
 		}
 
 		// Split comma-separated patterns into slices
@@ -75,14 +80,14 @@ func Execute() {
 
 func init() {
 	// Define flags
-	rootCmd.Flags().StringVar(&dirPath, "dir", "", "Root directory path to scan (required)")
+	rootCmd.Flags().StringVar(&dirPath, "dir", "", "Root directory path to scan (can also be specified as positional argument)")
 	rootCmd.Flags().StringVar(&includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (defaults to all files if not specified)")
 	rootCmd.Flags().StringVar(&excludeFiles, "exclude-files", "", "Comma-separated list of glob patterns to exclude files")
 	rootCmd.Flags().StringVarP(&output, "output", "o", "-", "Output destination (file path or '-' for stdout)")
 	rootCmd.Flags().BoolVar(&estimateTokens, "estimate-tokens", false, "Estimate and display the number of tokens in the output")
 
-	// Mark required flags
-	rootCmd.MarkFlagRequired("dir")
+	// 不再将dir标记为必需，因为可以从位置参数提供
+	// rootCmd.MarkFlagRequired("dir")
 }
 
 // splitPatterns splits a comma-separated string of patterns into a slice

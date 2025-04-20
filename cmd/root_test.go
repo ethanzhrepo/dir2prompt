@@ -315,3 +315,84 @@ func TestBinaryFilesHandling(t *testing.T) {
 		t.Error("Text file was not included in the output")
 	}
 }
+
+// TestPositionalArgument tests using a positional argument instead of --dir flag
+func TestPositionalArgument(t *testing.T) {
+	tempDir := setupTestDir(t)
+	defer cleanupTestDir(tempDir)
+
+	// Use positional argument
+	os.Args = []string{"dir2prompt", tempDir, "--include-files", "*.md"}
+
+	// Reset rootCmd
+	dirPath = ""
+	includeFiles = ""
+	excludeFiles = ""
+	output = "-"
+	estimateTokens = false
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Execute command
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed: %v", err)
+	}
+
+	// Close pipe and restore stdout
+	w.Close()
+	os.Stdout = oldStdout
+
+	// Read output
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	output := buf.String()
+
+	// Check output contains expected files
+	expectedFiles := []string{"README.md", "guide.md"}
+	for _, file := range expectedFiles {
+		if !strings.Contains(output, file) {
+			t.Errorf("Expected output to contain %s", file)
+		}
+	}
+
+	// Check output doesn't contain non-matching files
+	unexpectedFiles := []string{"main.go", "lib.go"}
+	for _, file := range unexpectedFiles {
+		if strings.Contains(output, file) {
+			t.Errorf("Output should not contain %s", file)
+		}
+	}
+}
+
+// TestNoDirectorySpecified tests that an error is returned when no directory is specified
+func TestNoDirectorySpecified(t *testing.T) {
+	// Reset command and arguments
+	os.Args = []string{"dir2prompt", "--include-files", "*.txt"}
+
+	// Reset rootCmd
+	dirPath = ""
+	includeFiles = ""
+	excludeFiles = ""
+	output = "-"
+	estimateTokens = false
+
+	// 执行命令（但不调用Execute，因为它会调用os.Exit）
+	err := rootCmd.Execute()
+
+	// 验证是否返回了错误
+	if err == nil {
+		t.Errorf("Expected an error when directory is not specified")
+	}
+
+	// Check error message
+	if !strings.Contains(err.Error(), "directory path is required") {
+		t.Errorf("Expected error message about missing directory, got: %s", err.Error())
+	}
+}
+
+// Override os.Exit for testing
+var osExit = os.Exit

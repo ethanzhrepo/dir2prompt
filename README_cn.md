@@ -47,13 +47,19 @@ go install github.com/ethanzhrepo/dir2prompt@latest
 ## 🛠️ 用法
 
 ```bash
-dir2prompt --dir <目录路径> --include-files <包含模式> [--exclude-files <排除模式>] [--output <输出文件或标准输出>] [--estimate-tokens]
+dir2prompt [目录路径] [参数]
+```
+
+或者
+
+```bash
+dir2prompt --dir <目录路径> [参数]
 ```
 
 ### 参数说明
 
-* **--dir \<目录路径\>：** (必需) 需要扫描的根目录路径。
-* **--include-files \<包含模式\>：** (可选) 用于匹配需要包含文件的 glob 模式列表，以逗号分隔。模式将与相对于 --dir 目录的文件路径进行匹配。
+* **目录路径 或 --dir \<目录路径\>：** (必需) 需要扫描的根目录路径。可以作为第一个位置参数提供，或者使用--dir标志指定。
+* **--include-files \<包含模式\>：** (可选) 用于匹配需要包含文件的 glob 模式列表，以逗号分隔。模式将与相对于目录的文件路径进行匹配。
   * 示例: `*.go,*.txt,docs/*.md`
   * 如果未指定，默认包含所有文件（`*`）。
 * **--exclude-files \<排除模式\>：** (可选) 用于匹配需要排除文件的 glob 模式列表，以逗号分隔。匹配这些模式的文件将被忽略，即使它们也匹配了包含模式。
@@ -69,6 +75,12 @@ dir2prompt --dir <目录路径> --include-files <包含模式> [--exclude-files 
 ### 示例
 
 包含 `~/myproject` 目录中的所有文件，排除测试文件，并输出到控制台：
+
+```bash
+dir2prompt ~/myproject --exclude-files "*_test.go"
+```
+
+使用标志而不是位置参数的相同命令：
 
 ```bash
 dir2prompt --dir ~/myproject --exclude-files "*_test.go"
