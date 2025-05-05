@@ -114,7 +114,6 @@ func TestRootCommand(t *testing.T) {
 			includeFiles = ""
 			excludeFiles = ""
 			output = "-"
-			estimateTokens = false
 
 			// Execute command
 			err := rootCmd.Execute()
@@ -179,7 +178,6 @@ func TestEstimateTokensFlag(t *testing.T) {
 	includeFiles = ""
 	excludeFiles = ""
 	output = "-"
-	estimateTokens = false
 
 	// Execute command
 	err := rootCmd.Execute()
@@ -225,7 +223,6 @@ func TestOutputFile(t *testing.T) {
 	includeFiles = ""
 	excludeFiles = ""
 	output = "-"
-	estimateTokens = false
 
 	// Execute command
 	err := rootCmd.Execute()
@@ -277,7 +274,6 @@ func TestBinaryFilesHandling(t *testing.T) {
 	includeFiles = ""
 	excludeFiles = ""
 	output = "-"
-	estimateTokens = false
 
 	// Execute command
 	err := rootCmd.Execute()
@@ -329,7 +325,6 @@ func TestPositionalArgument(t *testing.T) {
 	includeFiles = ""
 	excludeFiles = ""
 	output = "-"
-	estimateTokens = false
 
 	// Capture stdout
 	oldStdout := os.Stdout
@@ -378,7 +373,6 @@ func TestNoDirectorySpecified(t *testing.T) {
 	includeFiles = ""
 	excludeFiles = ""
 	output = "-"
-	estimateTokens = false
 
 	// 执行命令（但不调用Execute，因为它会调用os.Exit）
 	err := rootCmd.Execute()

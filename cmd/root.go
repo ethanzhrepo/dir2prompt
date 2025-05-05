@@ -10,11 +10,10 @@ import (
 )
 
 var (
-	dirPath        string
-	includeFiles   string
-	excludeFiles   string
-	output         string
-	estimateTokens bool
+	dirPath      string
+	includeFiles string
+	excludeFiles string
+	output       string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -56,7 +55,7 @@ including .git directories and git-related files such as .gitignore.`,
 			IncludeFiles:   includePatterns,
 			ExcludeFiles:   excludePatterns,
 			Output:         output,
-			EstimateTokens: estimateTokens,
+			EstimateTokens: true,
 		}
 
 		// Create and run the processor
@@ -84,8 +83,6 @@ func init() {
 	rootCmd.Flags().StringVar(&includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (defaults to all files if not specified)")
 	rootCmd.Flags().StringVar(&excludeFiles, "exclude-files", "", "Comma-separated list of glob patterns to exclude files")
 	rootCmd.Flags().StringVarP(&output, "output", "o", "-", "Output destination (file path or '-' for stdout)")
-	rootCmd.Flags().BoolVar(&estimateTokens, "estimate-tokens", false, "Estimate and display the number of tokens in the output")
-
 	// 不再将dir标记为必需，因为可以从位置参数提供
 	// rootCmd.MarkFlagRequired("dir")
 }
