@@ -106,6 +106,11 @@ func (p *Processor) Process() error {
 			return nil
 		}
 
+		// Skip symbolic links
+		if info.Mode()&os.ModeSymlink != 0 {
+			return nil
+		}
+
 		// Check if the file should be included
 		if p.shouldIncludeFile(relPath) {
 			// Pre-check if it's a text file

@@ -35,6 +35,7 @@ When interacting with LLMs, providing sufficient context (such as relevant porti
 * **Token Estimation:** Optional feature to estimate the number of tokens in the output, helping to control prompt size.
 * **Text-only Processing:** Automatically detects and skips binary files, processing only text files.
 * **Ignores Hidden Files:** Automatically skips all hidden directories and files (starting with '.'), including .git directories and git-related files.
+* **Skips Symbolic Links:** Automatically skips symbolic links.
 
 ## 🚀 Installation
 
