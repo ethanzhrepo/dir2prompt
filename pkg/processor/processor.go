@@ -61,6 +61,16 @@ func (p *Processor) Process() error {
 	var writer io.Writer
 	var totalContent strings.Builder // Used to collect all content for token estimation
 
+	// Special handling for "." (current directory)
+	if p.config.DirPath == "." {
+		// Get the absolute path of the current directory
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		p.config.DirPath = currentDir
+	}
+
 	// Determine the output destination
 	if p.config.Output == "" || p.config.Output == "-" {
 		writer = os.Stdout
@@ -94,7 +104,7 @@ func (p *Processor) Process() error {
 			}
 
 			// Skip hidden directories (starting with .)
-			if strings.HasPrefix(info.Name(), ".") {
+			if strings.HasPrefix(info.Name(), ".") && info.Name() != "." {
 				return filepath.SkipDir
 			}
 
@@ -361,7 +371,12 @@ func (p *Processor) estimateTokens(text string) (int, error) {
 // isTextFile checks if a file is a text file by examining its content
 func isTextFile(filePath string) (bool, error) {
 	// Special handling for known text file extensions
-	knownTextExtensions := []string{".go", ".js", ".ts", ".py", ".txt", ".md", ".html", ".css", ".json", ".xml", ".yaml", ".yml", ".toml"}
+	knownTextExtensions := []string{
+		".go", ".js", ".ts", ".py", ".txt", ".md", ".html", ".css", ".json", ".xml", ".yaml", ".yml", ".toml",
+		".c", ".cpp", ".h", ".hpp", ".java", ".sh", ".bash", ".php", ".rb", ".pl", ".rs", ".swift",
+		".kt", ".kts", ".gradle", ".groovy", ".jsx", ".tsx", ".vue", ".gitignore", ".dockerignore",
+		".sql", ".properties", ".ini", ".conf", ".cfg", ".config", ".csv", ".lock", ".mod", ".sum",
+	}
 
 	// Get file extension
 	ext := strings.ToLower(filepath.Ext(filePath))
@@ -369,6 +384,20 @@ func isTextFile(filePath string) (bool, error) {
 		if ext == textExt {
 			// Known text file extension, skip binary check
 			return true, nil
+		}
+	}
+
+	// If no extension, check the filename for common text files without extensions
+	if ext == "" {
+		basename := filepath.Base(filePath)
+		noExtTextFiles := []string{
+			"Makefile", "Dockerfile", "README", "LICENSE", "Gemfile", "Rakefile",
+			"Jenkinsfile", "Vagrantfile", "CMakeLists",
+		}
+		for _, name := range noExtTextFiles {
+			if basename == name {
+				return true, nil
+			}
 		}
 	}
 
@@ -405,7 +434,7 @@ func isTextFile(filePath string) (bool, error) {
 		}
 	}
 
-	// More permissive threshold (30% instead of 10%)
+	// Use a more permissive threshold (30% instead of 10%)
 	if n > 0 && float64(controlCount)/float64(n) > 0.3 {
 		return false, nil
 	}

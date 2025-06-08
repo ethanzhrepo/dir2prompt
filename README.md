@@ -91,6 +91,12 @@ The same command using flags instead of positional argument:
 dir2prompt --dir ~/myproject --exclude-files "*_test.go"
 ```
 
+Scan the current directory and save the result to `/tmp/abc.txt`:
+
+```bash
+dir2prompt . -o /tmp/abc.txt
+```
+
 Include Go files in the `src` subdirectory of `~/webapp`, all JavaScript files and text files, exclude temporary files and everything in the `node_modules` directory, and save the result to `context.txt`:
 
 ```bash

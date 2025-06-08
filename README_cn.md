@@ -87,6 +87,12 @@ dir2prompt ~/myproject --exclude-files "*_test.go"
 dir2prompt --dir ~/myproject --exclude-files "*_test.go"
 ```
 
+扫描当前目录并将结果保存到 `/tmp/abc.txt`：
+
+```bash
+dir2prompt . -o /tmp/abc.txt
+```
+
 包含 `~/webapp` 目录中 `src` 子目录下的 Go 文件、所有 JavaScript 文件和文本文件，排除临时文件和 `node_modules` 目录下的所有内容，并将结果保存到 `context.txt`：
 
 ```bash

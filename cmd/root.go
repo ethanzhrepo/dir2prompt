@@ -27,7 +27,10 @@ clear delimiters indicating source file paths, making it ideal for preparing
 context for large language models (LLMs) or for code analysis.
 
 The tool automatically ignores all hidden directories and files (starting with '.'),
-including .git directories and git-related files such as .gitignore.`,
+including .git directories and git-related files such as .gitignore.
+
+Directory path can be specified as a positional argument or with the --dir flag.
+You can use '.' to represent the current directory, e.g., 'dir2prompt . -o output.txt'`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 检查是否有位置参数作为目录路径
 		if len(args) > 0 && dirPath == "" {
@@ -38,6 +41,9 @@ including .git directories and git-related files such as .gitignore.`,
 		if dirPath == "" {
 			return fmt.Errorf("directory path is required, either as positional argument or with --dir flag")
 		}
+
+		// '.' represents the current directory, which is already handled correctly by Go's filepath
+		// No special handling needed, but we document it for clarity
 
 		// Split comma-separated patterns into slices
 		var includePatterns []string
@@ -79,7 +85,7 @@ func Execute() {
 
 func init() {
 	// Define flags
-	rootCmd.Flags().StringVar(&dirPath, "dir", "", "Root directory path to scan (can also be specified as positional argument)")
+	rootCmd.Flags().StringVar(&dirPath, "dir", "", "Root directory path to scan (can also be specified as positional argument, use '.' for current directory)")
 	rootCmd.Flags().StringVar(&includeFiles, "include-files", "", "Comma-separated list of glob patterns to include files (defaults to all files if not specified)")
 	rootCmd.Flags().StringVar(&excludeFiles, "exclude-files", "", "Comma-separated list of glob patterns to exclude files")
 	rootCmd.Flags().StringVarP(&output, "output", "o", "-", "Output destination (file path or '-' for stdout)")
